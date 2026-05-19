@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const pool = require('../config/database');
 const { sendOTPEmail } = require('../services/emailService');
+const socketService = require('../services/socketService');
 
 // ============================================
 // REGISTER FUNCTION - Create a new user account
@@ -167,6 +168,23 @@ async function login(req, res) {
         [user.id, ipAddress, userAgent, 100, 'BLOCKED', country, city]
       );
 
+      try {
+        socketService.emitNewLoginAttempt({
+          ipAddress,
+          riskScore: 100,
+          decision: 'BLOCKED',
+          country,
+          city,
+        });
+        socketService.emitNewBlockedIP({
+          ipAddress,
+          reason: 'Suspicious login attempt',
+        });
+        socketService.emitThreatLevelChange('BLOCKED');
+      } catch (socketErr) {
+        console.error('Socket emit failed:', socketErr);
+      }
+      
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
@@ -205,6 +223,27 @@ async function login(req, res) {
       'INSERT INTO login_attempts (user_id, ip_address, user_agent, risk_score, decision, country, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
       [user.id, ipAddress, userAgent, riskScore, decision, country, city]
     );
+
+    try {
+      socketService.emitNewLoginAttempt({
+        ipAddress,
+        riskScore,
+        decision,
+        country,
+        city,
+      });
+
+      if (decision === 'BLOCKED') {
+        socketService.emitNewBlockedIP({
+          ipAddress,
+          reason: 'Suspicious login attempt',
+        });
+      }
+
+      socketService.emitThreatLevelChange(decision);
+    } catch (socketErr) {
+      console.error('Socket emit failed:', socketErr);
+    }
 
     if (decision === 'BLOCKED') {
       return res.status(403).json({

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
+import NotificationToast from './NotificationToast';
 import { useTheme } from '../context/ThemeContext';
+import { useSocket } from '../context/SocketContext';
 
 const pageTitles = {
   '/dashboard': 'Dashboard',
@@ -14,15 +16,7 @@ function Layout({ children }) {
   const location = useLocation();
   const { theme } = useTheme();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [refreshIn, setRefreshIn] = useState(30);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setRefreshIn((prev) => (prev === 0 ? 30 : prev - 1));
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, []);
+  const { notifications, removeNotification } = useSocket();
 
   const bgClass = theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-950';
   const headerClass = theme === 'dark' ? 'border-b border-white/10 bg-slate-950/80 text-slate-400' : 'border-b border-slate-200 bg-white text-slate-500';
@@ -39,12 +33,12 @@ function Layout({ children }) {
               <p className="text-sm uppercase tracking-[0.2em]">{pageTitle}</p>
               <h1 className="mt-2 text-2xl font-semibold">Welcome back to ZeroTrust</h1>
             </div>
-            <p className="text-sm">Refreshing in {refreshIn}s...</p>
           </div>
         </div>
 
         <main className="px-6 py-8 sm:px-8">{children}</main>
       </div>
+      <NotificationToast notifications={notifications} onDismiss={removeNotification} isDark={theme === 'dark'} />
     </div>
   );
 }

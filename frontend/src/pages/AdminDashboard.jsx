@@ -16,6 +16,7 @@ import {
   YAxis,
 } from 'recharts';
 import axios from '../api/axios';
+import { useSocket } from '../context/SocketContext';
 import { useTheme } from '../context/ThemeContext';
 
 const decisionColors = {
@@ -57,6 +58,7 @@ function formatDateLabel(dateString) {
 function AdminDashboard() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+  const { socket, addNotification } = useSocket();
   const [stats, setStats] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [hourlyData, setHourlyData] = useState([]);
@@ -64,7 +66,6 @@ function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [toast, setToast] = useState('');
-  const [countdown, setCountdown] = useState(30);
 
   const themeStyles = useMemo(
     () => ({
@@ -117,18 +118,55 @@ function AdminDashboard() {
   }, []);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCountdown((current) => (current === 0 ? 30 : current - 1));
-    }, 1000);
+    if (!socket) return;
 
-    return () => clearInterval(interval);
-  }, []);
+    const handleNewAttempt = (attempt) => {
+      console.log('Received new_login_attempt:', attempt);
 
-  useEffect(() => {
-    if (countdown === 0) {
-      loadAllData();
-    }
-  }, [countdown]);
+      setStats((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          totalLogins: prev.totalLogins + 1,
+          safeLogins: prev.safeLogins + (attempt.decision === 'ALLOWED' ? 1 : 0),
+          suspiciousLogins: prev.suspiciousLogins + (attempt.decision === 'OTP_REQUIRED' ? 1 : 0),
+          blockedLogins: prev.blockedLogins + (attempt.decision === 'BLOCKED' ? 1 : 0),
+        };
+      });
+
+      setRecentAttempts((current) => [
+        {
+          id: `socket-${Date.now()}`,
+          ip_address: attempt.ipAddress,
+          risk_score: attempt.riskScore,
+          decision: attempt.decision,
+          country: attempt.country,
+          user_agent: attempt.userAgent || 'Real-time event',
+          timestamp: attempt.timestamp,
+        },
+        ...current,
+      ].slice(0, 20));
+    };
+
+    const handleThreatLevelChange = ({ level }) => {
+      console.log('Received threat_level_change:', level);
+      setStats((prev) => (prev ? { ...prev, threatLevel: level } : prev));
+    };
+
+    const handleNewBlockedIp = ({ ipAddress }) => {
+      console.log('Received new_blocked_ip:', ipAddress);
+    };
+
+    socket.on('new_login_attempt', handleNewAttempt);
+    socket.on('threat_level_change', handleThreatLevelChange);
+    socket.on('new_blocked_ip', handleNewBlockedIp);
+
+    return () => {
+      socket.off('new_login_attempt', handleNewAttempt);
+      socket.off('threat_level_change', handleThreatLevelChange);
+      socket.off('new_blocked_ip', handleNewBlockedIp);
+    };
+  }, [socket, addNotification]);
 
   const pieData = useMemo(() => {
     if (!stats) return [];
@@ -322,7 +360,7 @@ function AdminDashboard() {
             <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Peak login activity over the last 24 hours.</p>
           </div>
           <div className={isDark ? 'rounded-2xl px-4 py-2 text-sm bg-slate-950/10 text-slate-300' : 'rounded-2xl px-4 py-2 text-sm bg-gray-50 text-gray-700'}>
-            Auto refreshing every 30s
+            Live updates delivered in real time
           </div>
         </div>
 
