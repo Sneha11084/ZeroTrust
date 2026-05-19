@@ -21,7 +21,7 @@ function Login() {
         password,
       });
 
-      const { decision, token, message } = response.data;
+      const { decision, token, message, userId } = response.data;
 
       if (decision === 'ALLOWED') {
         localStorage.setItem('zerotrust_token', token);
@@ -30,6 +30,9 @@ function Login() {
       }
 
       if (decision === 'OTP_REQUIRED') {
+        if (userId) {
+          localStorage.setItem('otpUserId', userId);
+        }
         navigate('/verify-otp');
         return;
       }

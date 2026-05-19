@@ -34,6 +34,19 @@ async function createTables() {
     `);
     console.log('  ✓ Created LOGIN_ATTEMPTS table');
 
+    // OTP_CODES table - stores one-time passcodes for email verification
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS otp_codes (
+        id SERIAL PRIMARY KEY,
+        user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+        otp_code VARCHAR(6) NOT NULL,
+        expires_at TIMESTAMP NOT NULL,
+        used BOOLEAN DEFAULT false,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('  ✓ Created OTP_CODES table');
+
     // BLOCKED_IPS table - stores IP addresses that are flagged as suspicious
     // blocked_at helps track when an IP was added to the blacklist
     await pool.query(`
