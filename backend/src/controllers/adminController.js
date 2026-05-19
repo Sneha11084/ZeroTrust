@@ -202,6 +202,48 @@ async function unblockIp(req, res) {
   }
 }
 
+async function blockIp(req, res) {
+  try {
+    const { ipAddress, reason } = req.body;
+
+    if (!ipAddress) {
+      return res.status(400).json({
+        success: false,
+        message: 'IP address is required',
+      });
+    }
+
+    const existing = await pool.query(
+      'SELECT * FROM blocked_ips WHERE ip_address = $1',
+      [ipAddress]
+    );
+
+    if (existing.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'IP address is already blocked',
+      });
+    }
+
+    const result = await pool.query(
+      'INSERT INTO blocked_ips (ip_address, reason) VALUES ($1, $2) RETURNING *',
+      [ipAddress, reason || 'Manually blocked by administrator']
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: 'IP blocked successfully',
+      blockedIp: result.rows[0],
+    });
+  } catch (err) {
+    console.error('Error blocking IP:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to block IP',
+    });
+  }
+}
+
 module.exports = {
   getStats,
   getChartData,
@@ -209,4 +251,5 @@ module.exports = {
   getRecentAttempts,
   getBlockedIps,
   unblockIp,
+  blockIp,
 };

@@ -5,6 +5,7 @@ const createTables = require('./src/config/createTables');
 
 // Import the database connection (this connects to PostgreSQL when imported)
 const pool = require('./src/config/database');
+const ipBlockMiddleware = require('./src/middleware/ipBlockMiddleware');
 
 // Import routes
 const authRoutes = require('./src/routes/authRoutes');
@@ -17,6 +18,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(ipBlockMiddleware);
 
 // Initialize database - create tables when server starts
 createTables();

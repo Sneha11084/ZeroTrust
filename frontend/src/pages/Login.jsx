@@ -38,7 +38,7 @@ function Login() {
       }
 
       if (decision === 'BLOCKED') {
-        setError('Access blocked: suspicious activity detected.');
+        setError('🚫 Your IP address has been blocked due to too many failed login attempts. Contact administrator.');
         return;
       }
 

@@ -217,7 +217,12 @@ function AdminDashboard() {
                 {card.icon}
               </div>
               <div>
-                <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>{card.label}</p>
+                <div className="flex items-center gap-2">
+                  <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>{card.label}</p>
+                  {card.key === 'blockedLogins' && stats?.blockedLogins > 0 ? (
+                    <span className="inline-flex h-3 w-3 rounded-full bg-red-500 animate-pulse" />
+                  ) : null}
+                </div>
                 <p className={isDark ? 'mt-2 text-3xl font-semibold text-white' : 'mt-2 text-3xl font-semibold text-gray-900'}>{stats ? stats[card.key] : '...'}</p>
               </div>
             </div>

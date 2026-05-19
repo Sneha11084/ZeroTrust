@@ -71,6 +71,50 @@ async function login(req, res) {
       });
     }
 
+    const ipAddress =
+      req.headers['x-forwarded-for']?.split(',')[0] ||
+      req.ip ||
+      'unknown';
+    const userAgent = req.headers['user-agent'] || 'unknown';
+
+    const blockedIpResult = await pool.query(
+      'SELECT * FROM blocked_ips WHERE ip_address = $1',
+      [ipAddress]
+    );
+
+    if (blockedIpResult.rows.length > 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'Your IP has been blocked due to suspicious activity',
+        decision: 'BLOCKED',
+      });
+    }
+
+    const recentBlockedCountResult = await pool.query(
+      `SELECT COUNT(*) FROM login_attempts WHERE ip_address = $1 AND decision = 'BLOCKED' AND timestamp > NOW() - INTERVAL '2 minutes'`,
+      [ipAddress]
+    );
+
+    if (parseInt(recentBlockedCountResult.rows[0].count, 10) >= 5) {
+      const alreadyBlockedResult = await pool.query(
+        'SELECT * FROM blocked_ips WHERE ip_address = $1',
+        [ipAddress]
+      );
+
+      if (alreadyBlockedResult.rows.length === 0) {
+        await pool.query(
+          'INSERT INTO blocked_ips (ip_address, reason) VALUES ($1, $2)',
+          [ipAddress, 'Brute force detected - 5+ failed attempts in 2 minutes']
+        );
+      }
+
+      return res.status(403).json({
+        success: false,
+        message: 'Your IP has been blocked due to suspicious activity',
+        decision: 'BLOCKED',
+      });
+    }
+
     const userResult = await pool.query(
       'SELECT * FROM users WHERE email = $1',
       [email]
@@ -86,18 +130,50 @@ async function login(req, res) {
     const user = userResult.rows[0];
     const passwordMatch = await bcrypt.compare(password, user.password);
 
+    async function getGeoInfo(address) {
+      let country = 'Unknown';
+      let city = 'Unknown';
+
+      try {
+        if (
+          address === '::1' ||
+          address === '127.0.0.1' ||
+          address.startsWith('192.168.')
+        ) {
+          country = 'Localhost';
+          city = 'Local Network';
+        } else {
+          const geoResponse = await axios.get(`http://ip-api.com/json/${address}`, {
+            timeout: 3000,
+          });
+
+          if (geoResponse.data?.status === 'success') {
+            country = geoResponse.data.country || 'Unknown';
+            city = geoResponse.data.city || 'Unknown';
+          }
+        }
+      } catch (geoError) {
+        console.error('Geolocation lookup failed:', geoError?.message || geoError);
+      }
+
+      return { country, city };
+    }
+
     if (!passwordMatch) {
+      const { country, city } = await getGeoInfo(ipAddress);
+
+      await pool.query(
+        'INSERT INTO login_attempts (user_id, ip_address, user_agent, risk_score, decision, country, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [user.id, ipAddress, userAgent, 100, 'BLOCKED', country, city]
+      );
+
       return res.status(401).json({
         success: false,
         message: 'Invalid credentials',
+        decision: 'BLOCKED',
       });
     }
 
-    const ipAddress =
-      req.headers['x-forwarded-for']?.split(',')[0] ||
-      req.ip ||
-      'unknown';
-    const userAgent = req.headers['user-agent'] || 'unknown';
     const currentHour = new Date().getHours();
 
     let riskScore = 0;
@@ -123,30 +199,7 @@ async function login(req, res) {
       decision = 'BLOCKED';
     }
 
-    let country = 'Unknown';
-    let city = 'Unknown';
-
-    try {
-      if (
-        ipAddress === '::1' ||
-        ipAddress === '127.0.0.1' ||
-        ipAddress.startsWith('192.168.')
-      ) {
-        country = 'Localhost';
-        city = 'Local Network';
-      } else {
-        const geoResponse = await axios.get(`http://ip-api.com/json/${ipAddress}`, {
-          timeout: 3000,
-        });
-
-        if (geoResponse.data?.status === 'success') {
-          country = geoResponse.data.country || 'Unknown';
-          city = geoResponse.data.city || 'Unknown';
-        }
-      }
-    } catch (geoError) {
-      console.error('Geolocation lookup failed:', geoError?.message || geoError);
-    }
+    const { country, city } = await getGeoInfo(ipAddress);
 
     await pool.query(
       'INSERT INTO login_attempts (user_id, ip_address, user_agent, risk_score, decision, country, city) VALUES ($1, $2, $3, $4, $5, $6, $7)',

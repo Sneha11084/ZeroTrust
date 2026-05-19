@@ -9,6 +9,9 @@ function BlockedIps() {
   const [blockedIps, setBlockedIps] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [ipAddress, setIpAddress] = useState('');
+  const [reason, setReason] = useState('');
+  const [blocking, setBlocking] = useState(false);
 
   useEffect(() => {
     async function loadBlockedIps() {
@@ -54,6 +57,67 @@ function BlockedIps() {
             <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Review and remove blocked addresses from the ZeroTrust system.</p>
           </div>
         </div>
+      </div>
+
+      <div className={`mt-6 rounded-3xl border p-5 shadow-xl ${themeStyles.card}`}>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className={isDark ? 'text-lg font-semibold text-white' : 'text-lg font-semibold text-gray-900'}>Block IP Manually</h2>
+            <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Add a suspicious IP to the block list immediately.</p>
+          </div>
+        </div>
+        <form
+          className="grid gap-4 md:grid-cols-[1.2fr_1fr_auto]"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setError('');
+            setBlocking(true);
+
+            try {
+              const response = await axios.post('/api/admin/block-ip', {
+                ipAddress,
+                reason,
+              });
+
+              setBlockedIps((current) => [response.data.blockedIp, ...current]);
+              setIpAddress('');
+              setReason('');
+            } catch (err) {
+              console.error('Error blocking IP manually:', err);
+              setError(err?.response?.data?.message || 'Unable to block IP.');
+            } finally {
+              setBlocking(false);
+            }
+          }}
+        >
+          <input
+            type="text"
+            value={ipAddress}
+            onChange={(event) => setIpAddress(event.target.value)}
+            placeholder="IP address"
+            className="rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+            required
+          />
+          <input
+            type="text"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Reason"
+            className="rounded-2xl border border-slate-700 bg-slate-900 px-4 py-3 text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20"
+          />
+          <button
+            type="submit"
+            disabled={blocking}
+            className="rounded-2xl bg-red-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-red-400 disabled:cursor-not-allowed disabled:bg-slate-600"
+          >
+            {blocking ? 'Blocking...' : 'Block IP'}
+          </button>
+        </form>
+        {error && (
+          <div className="mt-4 rounded-2xl bg-red-500/10 border border-red-500/30 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
       </div>
 
       {loading ? (
