@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import AuthCallback from './pages/AuthCallback';
 import UserDashboard from './pages/UserDashboard';
 import AdminDashboard from './pages/AdminDashboard';
 import BlockedIps from './pages/BlockedIps';
@@ -8,7 +9,7 @@ import VerifyOtp from './pages/VerifyOtp';
 import Layout from './components/Layout';
 
 function RequireAuth({ children }) {
-  const token = localStorage.getItem('zerotrust_token');
+  const token = localStorage.getItem('zerotrust_token') || localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
 }
 
@@ -60,6 +61,7 @@ function App() {
           }
         />
         <Route path="/verify-otp" element={<VerifyOtp />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
