@@ -3,7 +3,7 @@ const {
   getMyLoginHistory,
   getMyProfile,
 } = require('../controllers/userController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { authMiddleware } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 

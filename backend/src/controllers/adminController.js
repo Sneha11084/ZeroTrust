@@ -244,6 +244,54 @@ async function blockIp(req, res) {
   }
 }
 
+async function makeAdmin(req, res) {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required to assign admin role',
+      });
+    }
+
+    const adminCheck = await pool.query(
+      "SELECT COUNT(*) AS admin_count FROM users WHERE role = 'admin'"
+    );
+
+    if (Number(adminCheck.rows[0].admin_count) > 0) {
+      return res.status(403).json({
+        success: false,
+        message: 'An admin user already exists. This route is only for initial setup.',
+      });
+    }
+
+    const updateResult = await pool.query(
+      'UPDATE users SET role = $1 WHERE email = $2 RETURNING id, email, role',
+      ['admin', email]
+    );
+
+    if (updateResult.rowCount === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    return res.json({
+      success: true,
+      message: 'User promoted to admin',
+      user: updateResult.rows[0],
+    });
+  } catch (err) {
+    console.error('Error assigning admin role:', err);
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to assign admin role',
+    });
+  }
+}
+
 module.exports = {
   getStats,
   getChartData,
@@ -252,4 +300,5 @@ module.exports = {
   getBlockedIps,
   unblockIp,
   blockIp,
+  makeAdmin,
 };

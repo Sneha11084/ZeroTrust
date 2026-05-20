@@ -241,7 +241,7 @@ function AdminDashboard() {
         </motion.div>
       )}
 
-      <div className="grid gap-5 xl:grid-cols-3">
+      <div className="grid gap-5 grid-cols-1 md:grid-cols-3">
         {summaryCards.map((card) => (
           <motion.div
             key={card.key}
@@ -321,7 +321,7 @@ function AdminDashboard() {
             <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Safe, suspicious and blocked attempts.</p>
           </div>
 
-          <div className="flex h-[320px] flex-col items-center justify-center gap-4 md:flex-row md:items-start">
+          <div className="flex flex-col items-center justify-center gap-4 min-h-[320px] md:h-[320px] md:flex-row md:items-start py-4 md:py-0">
             <ResponsiveContainer width="100%" height={260} minWidth={250}>
               <PieChart>
                 <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={90} paddingAngle={6}>
@@ -439,7 +439,7 @@ function AdminDashboard() {
             <p className={isDark ? 'text-sm text-gray-400' : 'text-sm text-gray-500'}>Full detail view of the last login events.</p>
           </div>
 
-          <div className={isDark ? 'overflow-hidden rounded-3xl border bg-slate-800 border-slate-700' : 'overflow-hidden rounded-3xl border bg-white shadow-md border-gray-200'}>
+          <div className={isDark ? 'overflow-x-auto rounded-3xl border bg-slate-800 border-slate-700' : 'overflow-x-auto rounded-3xl border bg-white shadow-md border-gray-200'}>
             <table className={isDark ? 'w-full min-w-[640px] divide-y divide-slate-700 text-left text-sm text-gray-300' : 'w-full min-w-[640px] divide-y divide-gray-200 text-left text-sm text-gray-700'}>
               <thead className={isDark ? 'bg-slate-800 text-gray-400' : 'bg-white text-gray-600'}>
                 <tr>

@@ -7,17 +7,21 @@ const {
   getBlockedIps,
   unblockIp,
   blockIp,
+  makeAdmin,
 } = require('../controllers/adminController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { requireAdmin } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.get('/stats', authMiddleware, getStats);
-router.get('/chart-data', authMiddleware, getChartData);
-router.get('/hourly', authMiddleware, getHourlyData);
-router.get('/recent-attempts', authMiddleware, getRecentAttempts);
-router.get('/blocked-ips', authMiddleware, getBlockedIps);
-router.post('/block-ip', authMiddleware, blockIp);
-router.delete('/blocked-ips/:id', authMiddleware, unblockIp);
+router.post('/make-admin', makeAdmin);
+router.use(requireAdmin);
+
+router.get('/stats', getStats);
+router.get('/chart-data', getChartData);
+router.get('/hourly', getHourlyData);
+router.get('/recent-attempts', getRecentAttempts);
+router.get('/blocked-ips', getBlockedIps);
+router.post('/block-ip', blockIp);
+router.delete('/blocked-ips/:id', unblockIp);
 
 module.exports = router;

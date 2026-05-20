@@ -1,8 +1,10 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import jwtDecode from 'jwt-decode';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AuthCallback from './pages/AuthCallback';
 import UserDashboard from './pages/UserDashboard';
+import Profile from './pages/Profile';
 import AdminDashboard from './pages/AdminDashboard';
 import BlockedIps from './pages/BlockedIps';
 import VerifyOtp from './pages/VerifyOtp';
@@ -11,6 +13,24 @@ import Layout from './components/Layout';
 function RequireAuth({ children }) {
   const token = localStorage.getItem('zerotrust_token') || localStorage.getItem('token');
   return token ? children : <Navigate to="/login" replace />;
+}
+
+function RequireAdmin({ children }) {
+  const token = localStorage.getItem('zerotrust_token') || localStorage.getItem('token');
+
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+
+  try {
+    const decoded = jwtDecode(token);
+    if (decoded.email !== 'sv728318@gmail.com') {
+      return <Navigate to="/dashboard" replace />;
+    }
+    return children;
+  } catch (err) {
+    return <Navigate to="/login" replace />;
+  }
 }
 
 function App() {
@@ -33,21 +53,25 @@ function App() {
         <Route
           path="/admin"
           element={
-            <RequireAuth>
-              <Layout>
-                <AdminDashboard />
-              </Layout>
-            </RequireAuth>
+            <RequireAdmin>
+              <RequireAuth>
+                <Layout>
+                  <AdminDashboard />
+                </Layout>
+              </RequireAuth>
+            </RequireAdmin>
           }
         />
         <Route
           path="/admin/blocked"
           element={
-            <RequireAuth>
-              <Layout>
-                <BlockedIps />
-              </Layout>
-            </RequireAuth>
+            <RequireAdmin>
+              <RequireAuth>
+                <Layout>
+                  <BlockedIps />
+                </Layout>
+              </RequireAuth>
+            </RequireAdmin>
           }
         />
         <Route
@@ -55,7 +79,7 @@ function App() {
           element={
             <RequireAuth>
               <Layout>
-                <UserDashboard />
+                <Profile />
               </Layout>
             </RequireAuth>
           }

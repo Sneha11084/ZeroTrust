@@ -274,7 +274,7 @@ async function login(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role || 'user' },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
@@ -288,6 +288,7 @@ async function login(req, res) {
       user: {
         id: user.id,
         email: user.email,
+        role: user.role || 'user',
       },
     });
   } catch (err) {
@@ -336,7 +337,7 @@ async function verifyOTP(req, res) {
 
     await pool.query('UPDATE otp_codes SET used = true WHERE id = $1', [otpRecord.id]);
 
-    const userResult = await pool.query('SELECT id, email FROM users WHERE id = $1', [userId]);
+    const userResult = await pool.query('SELECT id, email, role FROM users WHERE id = $1', [userId]);
     const user = userResult.rows[0];
 
     if (!user) {
@@ -347,7 +348,7 @@ async function verifyOTP(req, res) {
     }
 
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role || 'user' },
       process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
