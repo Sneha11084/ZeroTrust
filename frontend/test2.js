@@ -1,5 +1,5 @@
 const io = require("socket.io-client");
-const socket = io("http://localhost:5000", { transports: ["websocket"] });
+const socket = io(process.env.REACT_APP_API_URL || "http://localhost:5000", { transports: ["websocket"] });
 socket.on("connect", () => {
   console.log("TEST2 CONNECTED to", socket.id);
 });

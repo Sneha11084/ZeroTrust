@@ -1,7 +1,7 @@
 const io = require("socket.io-client");
 const axios = require("axios");
 
-const socket = io("http://localhost:5000", {
+const socket = io(process.env.REACT_APP_API_URL || "http://localhost:5000", {
   transports: ["websocket"]
 });
 
@@ -9,7 +9,7 @@ socket.on("connect", () => {
   console.log("TEST CLIENT CONNECTED");
   
   // Trigger a login attempt
-  axios.post("http://localhost:5000/api/auth/login", {
+  axios.post(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/login`, {
     email: "test@example.com",
     password: "wrongpassword"
   }).catch(e => {

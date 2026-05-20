@@ -16,7 +16,7 @@ export function SocketProvider({ children }) {
 
     socketInstance.connect();
 
-    console.log('Socket connecting to http://localhost:5000');
+    console.log(`Socket connecting to ${process.env.REACT_APP_API_URL || 'http://localhost:5000'}`);
 
     socketInstance.on('connect', () => {
       console.log('Socket connected:', socketInstance.id);
