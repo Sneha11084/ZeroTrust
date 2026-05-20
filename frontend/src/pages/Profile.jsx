@@ -54,7 +54,7 @@ function Profile() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className={`text-sm uppercase tracking-[0.25em] ${themeStyles.mutedText}`}>My Profile</p>
-            <h1 className={`mt-2 text-3xl font-semibold ${themeStyles.emphasized}`}>{profile?.email || 'ZeroTrust user'}</h1>
+            <h1 className={`mt-2 text-3xl font-semibold break-all ${themeStyles.emphasized}`}>{profile?.email || 'ZeroTrust user'}</h1>
             <p className={`mt-2 text-sm ${themeStyles.mutedText}`}>Manage your account settings and preferences.</p>
           </div>
           <button
@@ -73,7 +73,7 @@ function Profile() {
           <div className="mt-6 space-y-4">
             <div>
               <p className={`text-xs uppercase tracking-[0.2em] ${themeStyles.mutedText}`}>Email</p>
-              <p className={`mt-2 text-lg font-medium ${themeStyles.emphasized}`}>{profile?.email || 'Loading...'}</p>
+              <p className={`mt-2 text-lg font-medium break-all ${themeStyles.emphasized}`}>{profile?.email || 'Loading...'}</p>
             </div>
             <div>
               <p className={`text-xs uppercase tracking-[0.2em] ${themeStyles.mutedText}`}>Member since</p>

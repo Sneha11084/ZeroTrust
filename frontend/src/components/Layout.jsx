@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import NotificationToast from './NotificationToast';
@@ -15,8 +15,7 @@ const pageTitles = {
 function Layout({ children }) {
   const location = useLocation();
   const { theme } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { notifications, removeNotification } = useSocket();
 
   const bgClass = theme === 'dark' ? 'bg-slate-950 text-white' : 'bg-white text-slate-950';
@@ -26,20 +25,18 @@ function Layout({ children }) {
   return (
     <div className={`min-h-screen ${bgClass}`}>
       <Sidebar
-        isCollapsed={isCollapsed}
-        toggleCollapse={() => setIsCollapsed((prev) => !prev)}
-        mobileOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
-      <div className={`transition-all duration-300 ${isCollapsed ? 'md:ml-16' : 'md:ml-60'}`}>
+      <div className="transition-all duration-300">
         <div className={`${headerClass} px-6 py-5 backdrop-blur-xl sm:px-8`}>
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="flex items-center gap-4">
               <button
                 type="button"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/20 bg-slate-900/80 text-lg text-white transition hover:bg-slate-900 md:hidden"
-                onClick={() => setIsMobileMenuOpen(true)}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-slate-200/20 bg-slate-900/80 text-lg text-white transition hover:bg-slate-900"
+                onClick={() => setIsSidebarOpen(true)}
               >
                 ☰
               </button>

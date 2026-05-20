@@ -71,7 +71,7 @@ function UserDashboard() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className={`text-sm uppercase tracking-[0.25em] ${themeStyles.mutedText}`}>Welcome back</p>
-            <h1 className={`mt-2 text-3xl font-semibold ${themeStyles.emphasized}`}>{profile?.email || 'ZeroTrust user'}</h1>
+            <h1 className={`mt-2 text-3xl font-semibold break-all ${themeStyles.emphasized}`}>{profile?.email || 'ZeroTrust user'}</h1>
             <p className={`mt-2 text-sm ${themeStyles.mutedText}`}>Secure overview of your account activity.</p>
           </div>
           <button
