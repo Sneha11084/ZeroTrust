@@ -9,7 +9,7 @@ export function SocketProvider({ children }) {
   const [lastEvent, setLastEvent] = useState(null);
 
   useEffect(() => {
-    const socketInstance = ioClient('http://localhost:5000', {
+    const socketInstance = ioClient(process.env.REACT_APP_API_URL || 'http://localhost:5000', {
       transports: ['websocket'],
       forceNew: true,
     });

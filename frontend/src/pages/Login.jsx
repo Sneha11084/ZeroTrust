@@ -117,7 +117,7 @@ function Login() {
           whileHover={{ scale: 1.01 }}
           whileTap={{ scale: 0.99 }}
           type="button"
-          onClick={() => { window.location.href = 'http://localhost:5000/api/auth/google'; }}
+          onClick={() => { window.location.href = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/auth/google`; }}
           className="mt-6 w-full rounded-2xl border border-slate-700 bg-white px-4 py-3 text-sm font-semibold text-slate-900 shadow-sm transition hover:bg-slate-100 dark:bg-slate-700 dark:text-white"
         >
           <span className="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-red-500 text-white">G</span>
